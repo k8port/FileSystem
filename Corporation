@@ -326,7 +326,7 @@ public class Corporation {
             System.out.println("inside Corporation:changePermissions()");
         boolean tryagain = true;
         System.out.println("You have elected to change the file access rights "
-                + "for an employee. These are the files: ");
+                + "for an employee. These are the current access control rights: ");
         acm.display();
         while (tryagain) {
             try {
@@ -351,11 +351,11 @@ public class Corporation {
         String rwx;
         Scanner kbd = new Scanner(System.in);
         do {
-            System.out.println("Name the new access rights. You must use the "
-                    + "letters \'r\', \'w\' and \'x\', an empty space or a "
-                    + "dash.");
+            System.out.println("Assign new access rights. You must use only the "
+                    + "letters \'r\', \'w\' and \'x\'.");
             rwx = kbd.nextLine();
-        } while (Pattern.matches("^(r|-|w|x)(w|-|x| )(x|-| )$", rwx));
+        } while (!Pattern.matches("r?w?x?", rwx));
+        
         return rwx;
     }
     
@@ -371,6 +371,7 @@ public class Corporation {
         // get the user id and find in employee list
         do {                
             System.out.println("Name the employee: ");
+            
             String user = keyboard.nextLine();
             userIndex = employees.indexOf(user);
         } while (userIndex < 0);
@@ -386,9 +387,14 @@ public class Corporation {
             System.out.println("inside Corporation:getFileData()");
         int fileIndex;
         Scanner kbd = new Scanner(System.in);
+        // list all the file pathnames
+        ListIterator<String> lf = getCompanyFiles();
+        System.out.println("Hanuman Company Files:");
+        while (lf.hasNext())
+            System.out.println(lf.next());
         // get the file name and find in file list
         do {
-            System.out.println("Name the file: ");
+            System.out.println("Name the file: (use entire pathname)");
             String file = kbd.nextLine();
             fileIndex = files.indexOf(file);
         } while (fileIndex < 0);
