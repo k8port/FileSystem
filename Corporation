@@ -41,7 +41,8 @@ public class Corporation {
         establishBaseEmployees();
         
         acm = new Table(fillArray());
-        acm.display();
+        if (DEBUG) 
+            acm.display();
     }
     
     /**
@@ -93,16 +94,26 @@ public class Corporation {
     private String[][] fillArray() {
         if (DEBUG) 
             System.out.println("inside Corporation:fillArray()");
-        System.out.println("Creating a matrix " + employees.size() + " by " + files.size());
-        String[][] x = new String[employees.size()][files.size()];
+        System.out.println("Creating a matrix " + (employees.size() + 1 )+ " by " + (files.size() + 1));
+        String[][] x = new String[employees.size()+1][files.size()+1];
         x[0][0] = "ACM";
-        for (int indexE = 1; indexE < x[0].length; indexE++)
-            x[0][indexE] = files.get(indexE - 1); 
+        for (int indexE = 1; indexE < x[0].length; indexE++) {
+            String fileName = files.get(indexE - 1);
+            if (fileName.length() > 9) 
+                x[0][indexE] = fileName.substring
+                            (fileName.length()-10, fileName.length());
+            else
+                x[0][indexE] = files.get(indexE-1); 
+           
+        }
         for (int indexF = 1; indexF < x.length; indexF++)
-            x[indexF][0] = employees.get(indexF);
-        // x[1][0] = employees.get(0);
+            x[indexF][0] = employees.get(indexF-1);
+        if (DEBUG) {
+            System.out.println("length of rows: " + x.length);
+            System.out.println("length of columns " + x[0].length);
+        }
         for (int i = 1; i < x.length; i++) {
-            for (int j = 1; j < x[i].length; j++) {
+            for (int j = 1; j < x[0].length; j++) {
                 x[i][j] = "---";
             }
         }
@@ -160,13 +171,20 @@ public class Corporation {
             System.out.println("inside Corporation:addFile(param)");
         ListIterator<String> lit = files.listIterator();
         while (lit.hasNext()) {
+            if (DEBUG) 
+                System.out.println("inside checking for file match");
             String current = lit.next();
             if (current.equals(file))
                 return false;
         }
         files.add(file);
-        String[] column = new String[getNumberUsers()];
-        column[0] = file;
+        // an array starting with file name plus a field for each employee
+        String[] column = new String[getNumberUsers() + 1]; // add 1 for filename
+        // file name should abbreviate to 10 or less characters for table format
+        if (file.length() > 9) 
+            column[0] = file.substring(file.length()-10, file.length());
+        else
+            column[0] = file;
         for (int i = 1; i < column.length; i++) 
             column[i] = "---";
         acm = Table.addColumn(acm, column);
@@ -232,12 +250,15 @@ public class Corporation {
             System.out.println("inside Corporation:addEmployee(param)");
         ListIterator<String> liu = employees.listIterator();
         while (liu.hasNext()) {
+            if (DEBUG)
+                System.out.println("inside checking for employee match");
             String current = liu.next();
             if (current.equals(user))
                 return false;
         }
         employees.add(user);
-        String[] row = new String[getNumberFiles()];
+        // an array starting with userId and a field for each file
+        String[] row = new String[getNumberFiles() + 1]; // add 1 for userId 
         row[0] = user;
         for (int i = 1; i < row.length; i++) 
             row[i] = "---";
