@@ -1,0 +1,241 @@
+
+
+package hanumancorporation;
+
+import java.io.File;
+import java.util.Scanner;
+
+/**
+ * A class for a user to access Hanuman Corporation file system.
+ * @author k8port
+ */
+public class HanumanCorporation {
+    
+    /** Indicates if program is running in debug mode.*/
+    private static final boolean DEBUG = true;
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        
+        System.out.println("Creating employee with appropriate access rights.");
+        
+        User newUser = new User(SetUpAccessRights());
+        
+        while (!newUser.login()) {System.out.println("Try again.");}
+
+        AccessFileSystem(newUser);
+        
+    
+    }
+    
+    /**
+     * Prompts user to enter access level for new user.
+     * @return a number representing access level
+     */
+    private static int SetUpAccessRights() {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:SetUpAccessRights()");
+        System.out.println("Choose an new employee category option:");
+        System.out.println("Press 1 for System Administrator or IT.");
+        System.out.println("Press 2 for Executive.");
+        System.out.println("Press 3 for Management.");
+        System.out.println("Press 4 for General.");   
+        return GetUserChoice();
+    }
+    
+    /**
+     * Main gateway to file system from User login. Methods to access the file
+     * system are static methods of the Hanuman Corporation class since they
+     * do not belong to any single object and do not change.
+     * @param ux the user accessing the system
+     */
+    private static void AccessFileSystem(User ux) {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:AccessFileSystem(param)");
+        Corporation fs = new Corporation();
+        if (!fs.addEmployee(ux.getUserId())) 
+            System.out.println("You were already part of Hanuman.");
+        if (!fs.addFile(ux.getHomeDirectory())) 
+            System.out.println("Home directory was previously established.");
+        
+        System.out.println("Hanuman Corporation File System:");
+        fs.displayMatrix();
+        
+        while (UserOptions(fs, ux)) 
+            System.out.println("Logged in to Hanuman Corporation.");
+        System.out.println("Logging out of Hanuman Corporation.");
+        System.exit(0);
+    }
+    
+    /** Allows user to interact with system. Returns false when user wants
+     * to logout.
+     * @param filesys the Corporation file system and functionality
+     * @param user the user interacting with the corporation
+     * @return true if user stays logged in, false when user wants to logout
+     */
+    private static boolean UserOptions(Corporation filesys, User user) {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:UserOptions(param, param)");
+        DisplayOptions();
+        int choice = GetUserChoice();
+        return ProcessOption(choice, user, filesys);
+    }
+    
+    /**
+     * Based on the number redirects to a different method to execute a certain
+     * function.
+     * @param number the number representing the choice made by the system user
+     * @param user the person accessing the system
+     * @param session the file system 
+     * @return 
+     */
+    private static boolean ProcessOption(int number, User user, 
+            Corporation filesys) {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:ProcessOption(param, param)");
+        if (number == 1)
+            return ChangeFilePermissions(user, filesys);
+        else if (number == 2)
+            return AddCorporateUser(user, filesys);
+        else if (number == 3) 
+            return AddCorporateFile(user, filesys);
+        else if (number == 4) 
+            return SendMail(user, filesys);
+        else if (number == 5)
+            return false;
+        else {
+            System.out.println("Error: No action taken.");
+            return true;
+        }
+    }
+    
+    /**
+     * Gets the numerical choice of the system user.
+     * @return the number representing the action chosen by user
+     */
+    private static int GetUserChoice()  {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:GetUsersChoice()");
+        Scanner kbd = new Scanner(System.in);
+        int ans = 0;
+        boolean tryagain = true;
+        while (tryagain) {
+            ans = kbd.nextInt();
+            if (ans > 0 || ans < 4)
+                tryagain = false;
+            else
+                System.out.println("Try again.");
+        } 
+        return ans;
+    }
+    
+    /**
+     * Displays the options the user has in using the file system.
+     */
+    private static void DisplayOptions() {
+         if (DEBUG) 
+            System.out.println("inside HanumanCorporation:DisplayOptions()");
+        System.out.println("What would you like to do next? ");
+        System.out.println("Press 1 to change file permissions.");
+        System.out.println("Press 2 to add a user.");
+        System.out.println("Press 3 to add a file.");
+        System.out.println("Press 4 to logout.");
+    }
+
+    /**
+     * Allows user access to file system in order to change access rights of
+     * a user to a file.
+     * @param user the user accessing the file system
+     * @param filesys the company file system being accessed
+     * @return 
+     */
+    private static boolean ChangeFilePermissions(User user, Corporation filesys) {
+         if (DEBUG) 
+            System.out.println("inside HanumanCorporation:ChangeFilePermissions(param, param)");
+        if (user.getGroup() != 1) {
+            System.out.println("You do not have the ability to change file "
+                    + "permissions.");
+            return true;
+        }
+        filesys.changePermissions();
+        filesys.displayMatrix();
+        return true;
+    }
+    
+    /**
+     * Method allows user access to file system in order to add a new user 
+     * and adds them to the corporation if the person logged on (the caller) is
+     * in group 1, otherwise the function of the method is not accessible.
+     * @param user the person accessing the file system
+     * @param filesys the company file system being accessed
+     * @return true every time method is accessed regardless of outcome
+     */
+    private static boolean AddCorporateUser(User user, Corporation filesys) {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:AddCorporateUser(param, param)");
+        if (user.getGroup() != 1) {
+            System.out.println("You do not have the ability to add users.");
+            return true;
+        }
+        User newUser = new User(SetUpAccessRights());
+        if (!filesys.addEmployee(newUser.getUserId())) 
+            System.out.println("New user has already been added to company.");
+        if (!filesys.addFile(newUser.getHomeDirectory())) 
+            System.out.println("New user's home directory was previously established.");      
+        return true;
+    }
+    
+    /**
+     * Method allows user access to file system in order to add a new file 
+     * and adds it to the corporation if the person logged on (the caller) is
+     * in group 1, otherwise person can only add files to the home directory.
+     * @param user the person accessing the file system
+     * @param filesys the company file system being accessed
+     * @return true every time method is accessed regardless of outcome
+     */
+    private static boolean AddCorporateFile(User user, Corporation filesys) {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:AddCorporateFile(param, param)");
+        if (user.getGroup() != 1) {
+            System.out.println("You do not have permission to add files"
+                    + " except in your home directory.");
+            return true;
+        }
+        File newFile = new File(GetNewFileName());
+        if (!filesys.addFile(newFile.getAbsolutePath()))
+            System.out.println("This file is already establisehd.");
+        return true;
+    }
+    
+    /**
+     * Allows user to access company email in order to send an encrypted message
+     * to another person in the corporation.
+     * @param user the person accessing the system
+     * @param filesys the company file system being accessed
+     * @return true every time regardless of outcome
+     */
+    private static boolean SendMail(User user, Corporation filesys) {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:SendMail(param, param)");
+        if (user.getGroup() != 1) {
+            System.out.println("You do not have permission to send mail.");
+            return true;
+        }
+        return true;
+    }
+    
+    /**
+     * Prompts user to enter the name of a new file.
+     * @return the name of the file entered by user
+     */
+    private static String GetNewFileName() {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:GetNewFileName()");
+        Scanner kbd = new Scanner(System.in);
+        System.out.println("Enter the file name you are adding: ");
+        return kbd.nextLine();
+    }
+    
+}
