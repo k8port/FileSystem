@@ -1,0 +1,79 @@
+
+package hanumancorporation;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * Creates a Capabilities List using a TreeMap data structure. The key
+ * on the AccessControlList is a File and the values are the AccessControlEntries
+ * for that file. Simulates a file access database.
+ * @author k8port
+ */
+public class CapabilitiesList  {
+    
+    // data fields
+    /** A tree map of key-value pairs where the key is the File and the values
+     *  are the Access Control Entries associated with the file. Allows entries
+     *  to be stored in order.
+     */
+    private Map<User, List<UserFilePermission>> capabilities;
+    
+    // Constructors
+    /**
+     * No argument constructor.
+     */
+    public CapabilitiesList() {
+        capabilities = new TreeMap<>();
+    }
+    
+    // methods
+    /** Lists the specified user file permissions of the user. If the map 
+     *  previously contained a mapping for the key, the old user file are 
+     *  replaced. Returns the old list or null if this is a new entry.
+     * @param name The user
+     * @param relations The ACEs for the File
+     * @return The ACE's of the File or null if new entry
+     */
+    public List<UserFilePermission> addOrChangeEntry(User name, 
+                                List<UserFilePermission> relations) {
+        return capabilities.put(name, relations);
+    }
+    
+    /** Searches the given user entry and returns its list of files or null if 
+     *  the user entry isn't found.
+     * @param name the specified user
+     * @return The relationships associated with the entry or null if no entry.
+     */
+    public List<UserFilePermission> lookupEntry(User name) {
+        return capabilities.get(name);
+    }
+    
+    /** Removes the specified user and returns their list of files or null if 
+     *  there is no user.
+     * @param name The specified user
+     * @return The files associated with the entry or null if no entry.
+     */
+    public List<UserFilePermission> removeEntry(User name) {
+        return capabilities.remove(name);
+    }
+    
+    /** Displays the users and associated files in order. */
+    public void display() {
+        for (Map.Entry<User, List<UserFilePermission>> current :
+                                    capabilities.entrySet()) {
+            // display the name
+            System.out.println(current.getKey());
+            // display the list of numbers
+            System.out.println(current.getValue());
+        }
+    }
+    
+    /** 
+     * Get the number of Users in the capabilities list.
+     * @return  the number of users for which capabilities have been defined
+     */
+    public int getNumberOfUsers() {return capabilities.size();}
+}
