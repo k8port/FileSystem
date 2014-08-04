@@ -1,0 +1,389 @@
+
+package hanumancorporation;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
+/**
+ * Represents the Hanuman Corporation which has a file system and at least a 
+ * dozen users. Class creates a session with functionality to add, remove or 
+ * change users and files. Only the system administrator has any functional 
+ * access for the highly simplified file system.
+ * 
+ * @author k8port
+ */
+public class Corporation {
+    
+    // data fields
+    /** A flag to indicate if program is running in debug mode. */
+    private static final boolean DEBUG = true;
+    /** A list of corporate files. */
+    private final List<String> files;
+    /** A list of corporate employees. */
+    private final List<String> employees;
+    /** An access control matrix. */
+    private Table acm;
+    
+    // Constructor
+    /**
+     * No argument Constructor.
+     */
+    public Corporation() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:Corporation()");
+        files = new ArrayList<>();
+        employees = new ArrayList<>();
+        
+        establishBaseFiles();
+        establishBaseEmployees();
+        
+        acm = new Table(fillArray());
+        acm.display();
+    }
+    
+    /**
+     * Establishes the base list of corporate files with which the
+     * session user can interact.
+     */
+    private void establishBaseFiles() { 
+        if (DEBUG) 
+            System.out.println("inside Corporation:establishBaseFiles()");
+        files.add("slash");
+        files.add("slash/bin");
+        files.add("slash/etc");
+        files.add("slash/etc/passwd");
+        files.add("slash/etc/shadow");
+        files.add("slash/hanuman");
+        files.add("slash/hanuman/admin");
+        files.add("slash/hanuman/executive");
+        files.add("slash/hanuman/share");
+        files.add("slash/home");
+        files.add("slash/usr");
+        files.add("slash/usr/bin");
+        files.add("slash/var");
+        files.add("slash/var/www");   
+    }
+
+    private void establishBaseEmployees() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:establishBaseEmployees()");
+        employees.add("hanumanadmin1");
+        employees.add("hanumanadmin2");
+        employees.add("hanumanceo");
+        employees.add("hanumanvp");
+        employees.add("hanumancfo");
+        employees.add("employee1");
+        employees.add("employee2");
+        employees.add("employee3");
+        employees.add("employee4");
+        employees.add("employee5");
+        employees.add("employee6");
+        employees.add("techguy1");
+        employees.add("techgal1");
+    }
+    
+    /**
+     * Fills a table as an Access Control Matrix.  All permissions
+     * are denied by default.
+     * @return a multidimensional array representing an Access Control Matrix
+     */
+    private String[][] fillArray() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:fillArray()");
+        System.out.println("Creating a matrix " + employees.size() + " by " + files.size());
+        String[][] x = new String[employees.size()][files.size()];
+        x[0][0] = "ACM";
+        for (int indexE = 1; indexE < x[0].length; indexE++)
+            x[0][indexE] = files.get(indexE - 1); 
+        for (int indexF = 1; indexF < x.length; indexF++)
+            x[indexF][0] = employees.get(indexF);
+        // x[1][0] = employees.get(0);
+        for (int i = 1; i < x.length; i++) {
+            for (int j = 1; j < x[i].length; j++) {
+                x[i][j] = "---";
+            }
+        }
+        return x;
+    }
+    
+    /**
+     * Access the number of company files
+     * @return the number of company files
+     */
+    public int getNumberFiles() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:getNumberFiles()");
+        return files.size();
+    }
+    
+    /**
+     * Access the number of company users.
+     * @return the number of company users
+     */
+    public int getNumberUsers() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:getNumberUsers()");
+        return employees.size();
+    }
+    
+    /** 
+     * Access a list of company files.
+     * @return an iterator over all the files in the company
+     */
+    public ListIterator<String> getCompanyFiles() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:getCompanyFiles()");
+        return files.listIterator();
+    }
+    
+    /**
+     * Access a list of company employees.
+     * @return a list iterator over company employees
+     */
+    public ListIterator<String> getCompanyEmployees() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:getCompanyEmployees()");
+        return employees.listIterator();
+    }
+    
+    /**
+     * Add a file to list of company files. Checks to see if file exists
+     * and returns false if file already exists and nothing is added.
+     * @param file the file to add
+     * @return true if file is added to the list, false if already in list
+     */
+    public boolean addFile(String file) {
+        if (DEBUG) 
+            System.out.println("inside Corporation:addFile(param)");
+        ListIterator<String> lit = files.listIterator();
+        while (lit.hasNext()) {
+            String current = lit.next();
+            if (current.equals(file))
+                return false;
+        }
+        files.add(file);
+        String[] column = new String[getNumberUsers()];
+        column[0] = file;
+        for (int i = 1; i < column.length; i++) 
+            column[i] = "---";
+        acm = Table.addColumn(acm, column);
+        return true;
+    }
+    
+    /**
+     * Renames a single file in the list of company files and/or changes path.
+     * @param fileName the name of the file to change
+     * @param newFile the new file name and path
+     * @return true if file is renamed, false if file was not in existence
+     * and instead get added to the list.
+     * @throws hanumancorporation.BadDataException
+     */
+    public boolean renameFile(String fileName, String newFile) 
+            throws BadDataException {
+        if (DEBUG) 
+            System.out.println("inside Corporation:renameFile(param, param)");
+        ListIterator<String> lit = files.listIterator();
+        while (lit.hasNext()) {
+            String current = lit.next();
+            if (current.equals(fileName)) {
+               current = newFile;
+               // assumes that if file is in list of files,
+               // it will also be in table
+               for (int i = 0; i< acm.getNumberRows(); i++)
+                   acm.changeTableData(i, lit.previousIndex(), current);
+               return true;
+            }
+        }
+        files.add(newFile);
+        return false;
+    }
+    
+    /**
+     * Removes a file from the list.
+     * @param fileName the name of the file to remove
+     * @return the name of the file that is removed or null if file was not in the list
+     */
+    public String removeFile(String fileName) {
+        if (DEBUG) 
+            System.out.println("inside Corporation:removeFile(param)");
+        ListIterator<String> lit = files.listIterator();
+        while (lit.hasNext()) {
+            String current = lit.next();
+            if (current.equals(fileName)) {
+                files.remove(current);
+                // if file is part of list, will also be in table
+                acm.deleteColumn(acm.getColumnIndex(current));
+                return current;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Adds user to company if user doesn't already exist.
+     * @param user the user id to add
+     * @return true if user is added, false if they already exist
+     */
+    public boolean addEmployee(String user) {
+        if (DEBUG) 
+            System.out.println("inside Corporation:addEmployee(param)");
+        ListIterator<String> liu = employees.listIterator();
+        while (liu.hasNext()) {
+            String current = liu.next();
+            if (current.equals(user))
+                return false;
+        }
+        employees.add(user);
+        String[] row = new String[getNumberFiles()];
+        row[0] = user;
+        for (int i = 1; i < row.length; i++) 
+            row[i] = "---";
+        acm = Table.addRow(acm, row);
+        return true;
+    }
+    
+    /**
+     * Changes a user record to a new password. Returns false and 
+     * adds user if no record is found to change.
+     * @param oldUser the user id to replace
+     * @param newUser the new user id 
+     * @return true if record is changed, false if record is added
+     * @throws hanumancorporation.BadDataException
+     */
+    public boolean changeEmployee(String oldUser, String newUser) 
+            throws BadDataException {
+        if (DEBUG) 
+            System.out.println("inside Corporation:changeEmployee(param, param)");
+        ListIterator<String> liu = employees.listIterator();
+        while (liu.hasNext()) {
+            String current = liu.next();
+            if (current.equals(oldUser)) {
+                current = newUser;
+                // assumes that if user is in list of employees,
+               //  they are also in table
+               for (int i = 0; i< acm.getNumberColumns(); i++)
+                   acm.changeTableData(liu.previousIndex(), i, current);
+                return true;
+            }
+        }
+        employees.add(newUser);
+        
+        return false;
+    }
+    
+    /**
+     * Removes the user from the company list. Returns null if user is not
+     * found in the list.
+     * @param theUser the user id to remove
+     * @return the user being removed or null if none found.
+     */
+    public String removeUser(String theUser) {
+        if (DEBUG) 
+            System.out.println("inside Corporation:removeUser(param)");
+        ListIterator<String> liu = employees.listIterator();
+        while (liu.hasNext()) {
+            String current = liu.next();
+            if (current.equals(theUser)) {
+                employees.remove(current);
+                // if user is part of list, they also be in table
+                acm.deleteRow(acm.getRowIndex(current));
+                return current;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Prompts user to enter file & user name and assign access rights.
+     */
+    @SuppressWarnings("empty-statement")
+    public void changePermissions() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:changePermissions()");
+        boolean tryagain = true;
+        System.out.println("You have elected to change the file access rights "
+                + "for an employee. These are the files: ");
+        acm.display();
+        while (tryagain) {
+            try {
+                acm.changeTableData(getUserData() + 1, getFileData() + 1, 
+                        getPermissionString());
+                tryagain = false;
+            } catch (BadDataException e) {
+                System.out.println("Try entereing data again.");
+            }
+        } 
+            
+    }
+    
+    /**
+     * Prompts for input of access rights. Checks input for format that matches
+     * a permission string.
+     * @return a string of permissions
+     */
+    private String getPermissionString() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:getPermissionString()");
+        String rwx;
+        Scanner kbd = new Scanner(System.in);
+        do {
+            System.out.println("Name the new access rights. You must use the "
+                    + "letters \'r\', \'w\' and \'x\', an empty space or a "
+                    + "dash.");
+            rwx = kbd.nextLine();
+        } while (Pattern.matches("^(r|-|w|x)(w|-|x| )(x|-| )$", rwx));
+        return rwx;
+    }
+    
+    /**
+     * Prompts for input of employee name.
+     * @return the index representing the employee's place in line
+     */
+    private int getUserData() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:getUserData()");
+        int userIndex;
+        Scanner keyboard = new Scanner(System.in);
+        // get the user id and find in employee list
+        do {                
+            System.out.println("Name the employee: ");
+            String user = keyboard.nextLine();
+            userIndex = employees.indexOf(user);
+        } while (userIndex < 0);
+        return userIndex;
+    }
+    
+    /**
+     * Prompts for input of file name.
+     * @return the index representing the file's place in line
+     */
+    private int getFileData() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:getFileData()");
+        int fileIndex;
+        Scanner kbd = new Scanner(System.in);
+        // get the file name and find in file list
+        do {
+            System.out.println("Name the file: ");
+            String file = kbd.nextLine();
+            fileIndex = files.indexOf(file);
+        } while (fileIndex < 0);
+        return fileIndex;
+    }
+    
+    /**
+     * Display the company file system matrix.
+     */
+    public void displayMatrix() {
+        if (DEBUG) 
+            System.out.println("inside Corporation:displayMatrix()");
+        acm.display();
+    }
+}
+    
+
+    
+    
