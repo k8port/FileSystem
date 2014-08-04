@@ -1,0 +1,73 @@
+
+package hanumancorporation;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * Creates an Access Control List using a TreeMap data structure. The key
+ * on the AccessControlList is a File and the values are the AccessControlEntries
+ * for that file. Simulates a file access database.
+ * @author k8port
+ */
+public class AccessControlList  {
+    
+    // data fields
+    /** A tree map of key-value pairs where the key is the File and the values
+     *  are the Access Control Entries associated with the file. Allows entries
+     *  to be stored in order.
+     */
+    private Map<File, List<ACE>> acl;
+    
+    // Constructors
+    /**
+     * No argument constructor.
+     */
+    public AccessControlList() {
+        acl = new TreeMap<>();
+    }
+    
+    // methods
+    /** Associates the specified ACEs with the specified File in this map. If 
+     * the map previously contained a mapping for the key, the old ACE's are 
+     * replaced. Returns the old list of ACEs or null if this is a new entry.
+     * @param name The specified File 
+     * @param relations The ACEs for the File
+     * @return The ACE's of the File or null if new entry
+     */
+    public List<ACE> addOrChangeEntry(File name, List<ACE> relations) {
+        return acl.put(name, relations);
+    }
+    
+    /** Searches the given entry and returns its list of associations or null if 
+     *  the entry isn't found.
+     * @param name the specified entry
+     * @return The relationships associated with the entry or null if no entry.
+     */
+    public List<ACE> lookupEntry(File name) {return acl.get(name);}
+    
+    /** Removes the specified entry returns its list associations or null if 
+     *  there is no entry.
+     * @param name The specified entry
+     * @return The relationships associated with the entry or null if no entry.
+     */
+    public List<ACE> removeEntry(File name) {return acl.remove(name);}
+    
+    /** Displays the entries and associated relationships in order. */
+    public void display() {
+        for (Map.Entry<File, List<ACE>> current : acl.entrySet()) {
+            // display the name
+            System.out.println(current.getKey());
+            // display the list of numbers
+            System.out.println(current.getValue());
+        }
+    }
+    
+    /**
+     * Get the number of files in the Access Control List.
+     * @return the number of files for which access control has been defined
+     */
+    public int getNumberOfFiles() {return acl.size();}
+}
