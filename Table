@@ -1,0 +1,275 @@
+
+package hanumancorporation;
+
+import java.util.Arrays;
+import javax.swing.SwingUtilities;
+
+
+/**
+ * Defines a table.
+ * @author k8port
+ */
+public class Table {
+    
+    // data fields;
+    /** A flag to indicate if program is running in debug mode. */
+    private static final boolean DEBUG = true;
+    /** The number of rows in the table. */
+    private int rows;
+    /** The number of columns in the table. */
+    private int columns;
+    
+    /** The unsorted table. */
+    private String[][] table; 
+    
+    // constructors
+    /**
+     * Constructor with parameters.
+     * @param a the string[][] to copy into the matrix
+     */
+    public Table(String[][] a) {
+        if (DEBUG) 
+            System.out.println("inside Table:Table(param)");
+        if (a.length == 0 || a[0].length == 0) {
+            System.out.println("Empty records. Cannot construct file system.");
+            throw new NullPointerException();
+        }
+        rows = a.length;
+        columns = a[0].length;
+        fillTable(a);
+    }
+    
+    /**
+     * Copy constructor.
+     * @param table the table to copy
+     */
+    public Table(Table table) {
+        if (DEBUG) 
+            System.out.println("inside Table:Table(param)");
+        rows = table.rows;
+        columns = table.columns;
+        fillTable(table.table);
+    }
+    
+    /**
+     * Copies the String[][] into the table
+     * @param a the String[][]
+     */
+    private void fillTable(String[][] a) {
+        if (DEBUG) 
+            System.out.println("inside Table:fillTable(param)");
+        table = new String[rows][columns];
+        for (int i = 0; i < table.length; i++) {
+            for (int j = 0; j < table[0].length; j++) 
+                table[i][j] = a[i][j];
+        }
+    }
+    
+    /**
+     * Access the number of rows.
+     * @return the number of rows
+     */
+    public int getNumberRows() {
+        if (DEBUG) 
+            System.out.println("inside Table:getNumberRows()");
+        return rows;
+    }
+    
+    /**
+     * Access the number of columns.
+     * @return the number of columns
+     */
+    public int getNumberColumns() {
+        if (DEBUG) 
+            System.out.println("inside Table:getNumberColumns()");
+        return columns;
+    }
+    
+    /**
+     * Get column index.
+     * @param columnName the name of column being sought
+     * @return the index of the column being sought, or -1 if not found.
+     */
+    public int getColumnIndex(String columnName)  {
+        if (DEBUG) 
+            System.out.println("inside Table:getColumnIndex(param)");
+        for (int i = 0; i < table[0].length; i++) {
+            if (table[0][i].equals(columnName)) 
+                return i;
+        }
+        return -1;
+    }
+    
+        /**
+     * Get row index.
+     * @param rowName the name of row being sought
+     * @return the index of the row being sought, or -1 if not found.
+     */
+    public int getRowIndex(String rowName)  {
+        if (DEBUG) 
+            System.out.println("inside Table:getRowIndex(param)");
+        for (int i = 0; i < table.length; i++) {
+            if (table[i][0].equals(rowName)) 
+                return i;
+        }
+        return -1;
+    }
+    /**
+     * Access a row of strings from the table.
+     * @param index the row number 
+     * @return an array of string data
+     */
+    public String[] getRow(int index) {
+        if (DEBUG) 
+            System.out.println("inside Table:getRow(param)");
+        String[] rowReturn = null;
+        for (int i = 0; i < table[index].length; i++) 
+            rowReturn[i] = table[index][i];
+        return rowReturn;
+    }
+    
+    /**
+     * Access a column of strings from the table.
+     * @param index the column number
+     * @return an array of string data
+     */
+    public String[] getColumn(int index) {
+        if (DEBUG) 
+            System.out.println("inside Table:getColumn(param)");
+        String[] colReturn = null;
+        for (int i = 0; i < table.length; i++)
+            colReturn[i] = table[i][index];
+        return colReturn;
+    }
+    
+    /**
+     * Access the information inside the table grid
+     * @param row the row number
+     * @param col the column number
+     * @return the data at row and column
+     */
+    public String getFieldData(int row, int col) {
+        if (DEBUG) 
+            System.out.println("inside Table:getFieldData(param)");
+        return table[row][col];
+    }
+    
+    /**
+     * Changes specified table data of the matrix array.
+     * @param indexA the first index of matrix array to be changed
+     * @param indexB the second index of matrix array to be changed
+     * @param change the new string to change
+     * @throws hanumancorporation.BadDataException
+     */
+    public void changeTableData(int indexA, int indexB, String change) 
+        throws BadDataException {
+        if (DEBUG) 
+            System.out.println("inside Table:chagneTableData(param, param, param)");
+        if (indexA < 0 || indexB <0 || indexA > rows || indexB > columns)
+            throw new BadDataException();  
+        table[indexA][indexB] = change;
+    }
+    
+    /**
+     * Deletes a row in the table
+     * @param indexA the row to delete
+     */
+    public void deleteRow(int indexA) {
+        if (DEBUG) 
+            System.out.println("inside Table:deleteRow(param)");
+       rows--;
+       String[][] copyArray = new String[rows][columns];
+       for (int r = 0; r < indexA; r++) {
+           for (int c = 0; c < copyArray[0].length; c++) 
+               copyArray[r][c] = table[r][c];
+       }
+       for (int r = indexA; r < copyArray.length; r++) {
+           for (int c = 0; c < table[0].length; c++) 
+               copyArray[r][c] =  table[r+1][c];    
+       }
+       table = Arrays.copyOf(copyArray, rows);
+    }
+    
+    /**
+     * Deletes a column in the table.
+     * @param indexA the column to delete 
+     */
+    public void deleteColumn(int indexA) {
+        if (DEBUG) 
+            System.out.println("inside Table:deleteColumn(param)");
+        String[][] copyArray = new String[rows][--columns];
+        for (int r = 0; r < copyArray.length; r++) {
+            for (int c = 0; c< indexA; c++)
+                copyArray[r][c] = table[r][c];
+        }
+        for (int r = 0; r < copyArray.length; r++) {
+            for (int c = indexA; c < copyArray[0].length; c++) 
+                copyArray[r][c] = table[r][c+1];
+        }
+        table = Arrays.copyOf(copyArray, rows);
+    }
+    
+    /**
+     * Add the row from a static context..
+     * @param aTable the table to which the row is being added
+     * @param a the data in the row to add
+     * @return a new Table constructed of the old table and the new row data
+     */
+    public static Table addRow(Table aTable, String[] a) {
+        String[][] newTable;
+        if (DEBUG) 
+            System.out.println("inside Table:addRow(param)");
+        if (a.length != aTable.getNumberColumns())
+            System.out.println("Error: new data is of incorrect length.");
+        newTable = new String[aTable.getNumberRows()+1][aTable.getNumberColumns()];
+        for (int r = 0; r < newTable.length-1; r++) {
+            for (int c = 0; c < newTable[r].length; c++) 
+                newTable[r][c] = aTable.getFieldData(r, c);
+        }
+        for (int i = 0; i < newTable[0].length; i++) 
+            newTable[newTable.length-1][i] = a[i];
+        return new Table(newTable);
+    }
+    
+    public static Table addColumn(Table aTable, String[] a) {
+        String[][] newTable;
+        if (DEBUG) 
+            System.out.println("inside Table:addColumn(param)");
+        if (a.length != aTable.getNumberRows()) 
+            System.out.println("Error: new data is of incorrect length.");
+        newTable = new String[aTable.getNumberRows()][aTable.getNumberColumns()+1];
+        for (int r = 0; r < newTable.length; r++) {
+            for (int c = 0; c < newTable[r].length-1; c++) 
+                newTable[r][c] = aTable.getFieldData(r, c);
+        }
+        for (int i = 0; i < newTable.length; i++) 
+            newTable[i][aTable.getNumberColumns()-1] = a[i];
+        return new Table(newTable);
+    }
+    
+    /**
+     * Displays the table neatly formatted.
+     */
+    public void display() {
+       /*for (String[] table1 : table) {
+            System.out.println("");
+            for (int j = 0; j < 10; j++) {
+                if (0xa > table1[j].length()) {
+                    System.out.print(String.format("%15s", table1[j] + " | "));
+                } else {
+                    System.out.print(String.format("%15s", table1[j].substring(table1[j].length() - 10, table1[j].length()) + " | "));
+                }
+            }
+        }
+        System.out.println(""); 
+        */
+        if (DEBUG) 
+            System.out.println("inside Table:display()");
+        for (int i = 0; i < table.length; i++) {
+            System.out.println("");
+            for (int j = 0; j < table[i].length; j++)
+                System.out.printf("%15s", table[i][j]);
+        }
+        System.out.println("");
+    }
+}
