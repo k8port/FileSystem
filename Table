@@ -222,8 +222,8 @@ public class Table {
         if (a.length != aTable.getNumberColumns())
             System.out.println("Error: new data is of incorrect length.");
         newTable = new String[aTable.getNumberRows()+1][aTable.getNumberColumns()];
-        for (int r = 0; r < newTable.length-1; r++) {
-            for (int c = 0; c < newTable[r].length; c++) 
+        for (int r = 0; r < aTable.getNumberRows(); r++) {
+            for (int c = 0; c < aTable.getNumberColumns(); c++) 
                 newTable[r][c] = aTable.getFieldData(r, c);
         }
         for (int i = 0; i < newTable[0].length; i++) 
@@ -238,12 +238,12 @@ public class Table {
         if (a.length != aTable.getNumberRows()) 
             System.out.println("Error: new data is of incorrect length.");
         newTable = new String[aTable.getNumberRows()][aTable.getNumberColumns()+1];
-        for (int r = 0; r < newTable.length; r++) {
-            for (int c = 0; c < newTable[r].length-1; c++) 
+        for (int r = 0; r < aTable.getNumberRows(); r++) {
+            for (int c = 0; c < aTable.getNumberColumns(); c++) 
                 newTable[r][c] = aTable.getFieldData(r, c);
         }
         for (int i = 0; i < newTable.length; i++) 
-            newTable[i][aTable.getNumberColumns()-1] = a[i];
+            newTable[i][aTable.getNumberColumns()] = a[i];
         return new Table(newTable);
     }
     
