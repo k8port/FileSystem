@@ -1,0 +1,21 @@
+
+
+package hanumancorporation;
+
+/**
+ * Defines an exception called Bad Data which means data entered does not fit
+ * into the parameters of the construct.
+ * @author k8port
+ */
+class BadDataException extends Exception {
+
+    public BadDataException() {
+        super("Error: Data entered does not fit into the parameters of the "
+                + "construct.");
+    }
+    
+    public BadDataException(String message) {
+        super(message);
+    }
+    
+}
