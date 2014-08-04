@@ -1,0 +1,355 @@
+
+package hanumancorporation;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
+
+
+/**
+ * An class for a file system user.
+ * @author k8port
+ */
+public class User {
+    
+    // data fields
+    /** Indicates the bit length of the symmetric key. */
+    private static final int KEY_LENGTH = 16;
+    /** Indicates if program is running in debug mode. */
+    private static final boolean DEBUG = true;
+
+    /** The type of user determines access rights. */
+    private final int group;  // functionality only for users of group 1
+    /** The userId of the user. */
+    private String userId;
+    /** The password of the user. */
+    private Password password;
+    /** The user's home directory. */
+    private File home;
+       
+    /** 
+     * Constructor. Initializes the userId at creation.
+     * @param group the type of user 
+     */
+    public User(int group) {
+        if (DEBUG) 
+            System.out.println("inside User:User(param) constructor.");
+        Scanner kbd = new Scanner(System.in);
+        boolean userCreated = false;
+        this.group = group;
+        while (!userCreated) {
+            String word;
+            do {
+                System.out.println("\nEnter a username of 8-12 characters length"
+                    + " and comprised \nonly of letters and/or digits.");
+                userId = kbd.nextLine(); // read userID from console
+            } while (!uidOK()); // check that userID follows format 
+            do {
+                do {
+                    System.out.println("\nPassword should be a string of at "
+                            + "least 8 characters \nconsisting of letters, "
+                            + "numbers and/or symbols.");
+                    word = kbd.nextLine();
+                } while (!pwdOK(word));
+                System.out.println("Great! Reenter Password: ");
+            } while (!word.equals(kbd.nextLine()));
+            password = new Password(word.toCharArray());
+            home = createHomeDirectory();
+            userCreated = writeToFile();
+        }
+        System.out.println("Successfully created profile.\n");
+        
+    }
+    
+    /** Method that returns true if userId matches format. Must be
+     *  between 8-12 characters and be a letter, digit or symbol
+     *  @return true if userID matches format
+     */
+    private boolean uidOK() {
+        if (DEBUG) 
+            System.out.println("inside User:uidOk()");
+        if ((userId.length() > 12) || (userId.length() < 8)) {
+            System.out.println("Error: Use 8-12 characters.");
+            return false;
+        }
+        for (int i = 0; i < userId.length(); i++) {
+            if (Character.isWhitespace(userId.charAt(i))) {
+                System.out.println("Error: Use letters and/or digits.");
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Method that returns true if password matches format. Must be a string of
+     * at least 8 characters consisting of letters, numbers and/or symbols.
+     * @return true if password follows format
+     */
+    private boolean pwdOK(String word) {
+        if (DEBUG) 
+            System.out.println("inside User:pwd)Ok(param)");
+        return Pattern.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*([!@#$%^&*()_+=-])).+$", word);
+    }
+    
+    /**
+     * Method to create a new users home directory in the file system.
+     * @return the File representing the user's home directory
+     */
+    private File createHomeDirectory() {
+        if (DEBUG) 
+            System.out.println("inside User:createHomeDirectory()");
+        String pathname = "slash/home/" + getUserId();
+        return new File(pathname); 
+    }
+    
+    /**
+     * Method to access the user type to determine access rights.
+     * @return the user group number
+     */
+    public int getGroup() {
+        if (DEBUG) 
+            System.out.println("inside User:getGroup()");
+        return group;
+    }
+    
+    /**
+     * Method to access the user's home directory.
+     * @return the pathname of the user's home directory.
+     */
+    public String getHomeDirectory() {
+        if (DEBUG) 
+            System.out.println("inside User:getHomeDirectory()");
+        return home.getAbsolutePath();
+    }
+    
+    /**
+     * Method to access the userId.
+     * @return the userId
+     */
+    public String getUserId() {
+        if (DEBUG) 
+            System.out.println("inside User:getUserId()");
+        return userId;
+    }
+    
+    /**
+     * Method that writes user information to password file. 
+     * Checks to see if user is already in file.  
+     * @return true if record added, false if error occurs or user exists.
+     */
+    private boolean writeToFile() {
+        if (DEBUG) 
+            System.out.println("inside User:writeToFile()");
+        Scanner in;
+        StringTokenizer st;
+        PrintWriter pwd, shad;
+        try {
+            in = new Scanner(new FileInputStream("slash/etc/passwd"));
+            while (in.hasNextLine()) {
+                st = new StringTokenizer(in.nextLine(), ":");
+                String saltFromFile = st.nextToken();
+                if (st.nextToken().equals(userId)) {
+                    System.out.println("UserId already exists. Cannot create record.");
+                    return false;
+                }
+            }
+            pwd = new PrintWriter(new FileOutputStream("slash/etc/passwd", true));
+            pwd.printf("%s:%s:%s:%d:%s%n", password.getSalt(), userId, "x", group, home.toString());
+            shad = new PrintWriter(new FileOutputStream("slash/etc/shadow", true));
+            shad.printf("%s:%s%n", password.getSalt(), password.toString());
+            shad.close();
+            pwd.close();
+            return true;
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: file not found.");
+            return false;
+        }
+    }
+    
+    /**
+     * Method that rewrites new password hash to shadow file. 
+     * Changes record if user is already in file.   
+     * @return true if record changed, false if error or user doesn't exist
+     */
+    private boolean rewriteToFile() {
+        if (DEBUG) 
+            System.out.println("inside User:rewriteToFile()");
+        Scanner in;
+        PrintWriter pwd = null, shad = null;
+        try {
+            in = new Scanner(new FileInputStream("slash/etc/passwd"));
+            while (in.hasNextLine()) {
+                if (in.next().equals(userId)) {
+                    shad = new PrintWriter(new FileOutputStream("slash/etc/shadow", true));
+                    shad.printf("%s:%s%n", password.getSalt(), password.toString());
+                    pwd.close();
+                    shad.close();
+                    return true;
+                }
+            }
+            System.out.println("UserId doesn't already exists. Cannot apply changes.");
+            pwd.close();
+            shad.close();
+            return false;
+            
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: password file not found.");
+            return false;
+        }
+    }
+    
+    /**
+     * Changes the user's password. Writes new hash password to end of shadow.
+     * @param newPassword the new password
+     */
+    public void changePassword(String newPassword) {
+        if (DEBUG) 
+            System.out.println("inside User:changePassword(param)");
+        if (newPassword == null) 
+            throw new NullPointerException();
+        boolean ok = rewriteToFile();
+        if (!ok) 
+            System.out.println("Error. No userId exists. Changes not applied.");
+        else {
+            password = new Password(newPassword.toCharArray());
+        }
+    }
+    
+    private boolean passwordMatch(String loginPassword, String hashedPassword) {
+        if (DEBUG) 
+            System.out.println("inside User:passwordMatch(param, param)");    
+        return loginPassword.equals(hashedPassword);
+    }
+    
+    
+    /** Method that logs a user in, a new Corporation if successful. Method asks
+     *  for an id that has already been created and for a matching password. 
+     *  @return new Corporation if login is successful, null if not
+     */
+    public boolean login() { 
+        if (DEBUG) 
+            System.out.println("inside User:login()");
+        String hashpass = userMatch(getLoginId());
+        if (hashpass != null) {
+            if (passwordMatch(loginPassword(), hashpass)) {
+                System.out.println("Logged on as " + userId + ". Login success.");
+                Corporation cs = new Corporation();
+                return true;
+            }
+            else {
+                System.out.println("Passwords do not match. Login failure.");
+                return false;
+            }
+        }
+        else {
+            System.out.println("UserID does not exist. Login failure.");
+            return false; 
+        }
+    }
+    
+    public String loginPassword() {
+        if (DEBUG) 
+            System.out.println("inside User:loginPassword()");
+        Scanner kbd = new Scanner(System.in);
+        System.out.println("\nEnter your password.");
+        return Password.hashPassword(kbd.nextLine().toCharArray(), password.getSalt());
+    }
+    
+        /**
+     * Method prompting user to login with userID
+     * @return the login used
+     */
+    private String getLoginId() {
+        if (DEBUG) 
+            System.out.println("inside User:getLoginId()");
+        Scanner kbd = new Scanner(System.in);
+        System.out.println("\nEnter your user ID:");
+        return kbd.next();
+    }
+    
+    /**
+     * Method that matches user to record in database file.
+     * @return the hashed password associated with the record if user match found
+     */
+    private String userMatch(String id) {
+        if (DEBUG) 
+            System.out.println("inside User:userMatch(param)");
+        Scanner in, dow;
+        String hashpass = null;
+        try {
+            in = new Scanner(new FileInputStream("slash/etc/passwd"));
+            StringTokenizer st1, st2;
+            while (in.hasNextLine()) {
+                st1 = new StringTokenizer(in.nextLine(), ":");
+                st1.nextToken();
+                if (st1.nextToken().equals(id)) {
+                    dow = new Scanner(new FileInputStream("slash/etc/shadow"));
+                    while (dow.hasNextLine()) {
+                        st2 = new StringTokenizer(dow.nextLine(), ":");
+                        if (st2.nextToken().equals(password.getSalt()))
+                            hashpass = st2.nextToken();
+                    }
+                    dow.close();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: file not found.");
+        }
+        return hashpass;
+    }
+    
+    
+    /**
+     * A string representing the user.
+     * @return a string representing the user.
+     */
+    @Override
+    public String toString() {
+        if (DEBUG) 
+            System.out.println("inside User:toString()");
+        StringBuilder sb = new StringBuilder();
+        sb.append("User id: ").append(userId).append("\nPassword: ").append(password);
+        sb.append("\nUser Group: ").append(group);
+        return sb.toString();
+    }
+    
+    /**
+     * Checks two users for equality
+     * @param other the other object
+     * @return true if both the same
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (DEBUG) 
+            System.out.println("inside User:equals(param)");
+        if (other == null)
+            return false;
+        else if (getClass() != other.getClass())
+            return false;
+        else {
+            User otherUx = (User) other;
+            return group == otherUx.group
+                    && userId.equals(otherUx.userId)
+                    && password.equals(otherUx.password);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        if (DEBUG) 
+            System.out.println("inside User:hashCode()");
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.group);
+        hash = 59 * hash + Objects.hashCode(this.userId);
+        hash = 59 * hash + Objects.hashCode(this.password);
+        return hash;
+    }
+    
+}
