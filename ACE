@@ -1,0 +1,152 @@
+
+package hanumancorporation;
+
+import java.util.Arrays;
+import java.util.InputMismatchException;
+import java.util.Objects;
+
+/**
+ * Class to define an ACE or the permission record found in an Access Control
+ * List (ACL). An ACE for a given file or folder consists of a triplet 
+ * (principal,type, permission). An ACL is an ordered list of ACE.
+ * @author k8port
+ */
+public class ACE {
+    
+    // data fields
+    /** The length of the permission string in each ACE. */
+    private static final int PSL = 3;
+    /** The user or group of users. */
+    private String principal;
+    /** Allow or deny user - deny by default. */
+    private boolean deny = true;
+    /** An array of chars combined to create the permission string. */
+    private Permissions[] set;
+    
+    // Constructors
+    /**
+     * Constructor with parameters
+     * @param principal the principal user or group
+     * @param deny to allow or deny access to principal
+     * @param permSet the permissions granted to principal 
+     */
+    public ACE(String principal, boolean deny, Permissions[] permSet) {
+        if (principal == null) {
+            System.out.println("Error: No user or user group specified.");
+            throw new NullPointerException();
+        } 
+        this.principal = principal;
+        this.deny = deny;
+        set = new Permissions[3];
+        if (permSet == null || permSet[0] == null) {
+            System.out.println("Error: No permissions set.");
+            throw new NullPointerException();
+        }
+        if (permSet.length > PSL) {
+            System.out.println("Error: permissions set for user are unclear.");
+            throw new InputMismatchException();
+        }
+        for (int i = 0; i< PSL; ) {
+            set[i] = permSet[i];
+        }
+    }
+    
+    /**
+     * Copy constructor.
+     * @param anEntry the other ACE to replicate
+     */
+    public ACE(ACE anEntry) {
+        principal = anEntry.principal;
+        deny = anEntry.deny;
+        for (int i = 0; i < PSL; i++) 
+            set[i] = anEntry.set[i];
+    }
+    
+    // methods
+    /**
+     * Access the principal of the ACE which is the user or groups of users.
+     * @return the principal of the ACE
+     */
+    public String getPrincipal() {return principal;}
+    
+    /**
+     * Changes the principal of the ACE which is the user or groups of users.
+     * @param newPrincipal the new principal of the ACE. If null will not change.
+     */
+    public void setPrincipal(String newPrincipal) {
+        if (newPrincipal != null) {
+            principal = newPrincipal;
+        }
+    }
+    
+    /**
+     * Access the type of the ACE - either allow or deny. 
+     * @return true if deny - denied by default
+     */
+    public boolean getType() {return deny;}
+   
+    /**
+     * Change the type of the ACE - to either allow or deny
+     * @param newType true if deny, false if allow
+     */
+    public void setType(boolean newType) {deny = newType;}
+    
+    /**
+     * Access the permission string of the ACE
+     * @return the permission string
+     */
+    public String getPermissions() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < PSL; i++) {
+           sb.append(set[i]);
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Change the permissions for the ACE. Will not change if parameter null.
+     * @param newPermissions the new permissions for the ACE. 
+     */
+    public void setPermissions(Permissions[] newPermissions) {
+        if (newPermissions != null) {   
+            for (int i = 0; i < PSL; i++) 
+                set[i] = newPermissions[i];
+        } 
+    }
+    
+    /**
+     * A String representation of the ACE.
+     * @return the string representation of the ACE
+     */
+    @Override
+    public String toString() {return principal + ": " + getPermissions();}
+    
+    /**
+     * Determines if another ACE is the same to this one but located in 
+     *  different memory.
+     * @param other the other ACE to compare
+     * @return true if they are the same entry in different memory
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (other == null)
+            return false;
+        else if (getClass() != other.getClass())
+            return false;
+        else {
+            ACE entry = (ACE) other;
+            return principal.equals(entry.principal) 
+                    && this.getPermissions().equals(entry.getPermissions())
+                    && deny == entry.deny;               
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 37 * hash + Objects.hashCode(this.principal);
+        hash = 37 * hash + (this.deny ? 1 : 0);
+        hash = 37 * hash + Arrays.deepHashCode(this.set);
+        return hash;
+    }
+}
