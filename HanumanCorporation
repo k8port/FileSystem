@@ -91,24 +91,43 @@ public class HanumanCorporation {
      * @param session the file system 
      * @return 
      */
+    @SuppressWarnings("empty-statement")
     private static boolean ProcessOption(int number, User user, 
             Corporation filesys) {
         if (DEBUG) 
             System.out.println("inside HanumanCorporation:ProcessOption(param, param)");
-        if (number == 1)
-            return ChangeFilePermissions(user, filesys);
-        else if (number == 2)
-            return AddCorporateUser(user, filesys);
-        else if (number == 3) 
-            return AddCorporateFile(user, filesys);
-        else if (number == 4) 
-            return SendMail(user, filesys);
-        else if (number == 5)
-            return false;
-        else {
-            System.out.println("Error: No action taken.");
-            return true;
-        }
+        switch (number) {
+            case 1: 
+                return ChangeFilePermissions(user, filesys);
+            case 2:
+                return AddCorporateUser(user, filesys);
+            case 3:
+                return AddCorporateFile(user, filesys);
+            case 4:
+                return SendMail(user, filesys);
+            case 5:
+                filesys.displayMatrix();;
+                return true;
+            case 6:
+                System.out.println("Are you sure you want to log out? Enter y or n.");
+                Scanner kbd = new Scanner(System.in);
+                String x = kbd.next();
+                if (null != x.toLowerCase()) {
+                    switch (x.toLowerCase()) {
+                        case "y":
+                            return false;
+                        case "n":
+                            return true;
+                        default:
+                            System.out.println("I'm sorry. I did not understand your answer.");
+                            System.out.println("What do you want to do next?");
+                            return true;
+                    }
+                }
+            default:
+                System.out.println("Error: No action taken.");
+                return true;
+        }       
     }
     
     /**
@@ -123,7 +142,7 @@ public class HanumanCorporation {
         boolean tryagain = true;
         while (tryagain) {
             ans = kbd.nextInt();
-            if (ans > 0 || ans < 4)
+            if (ans > 0 || ans <= 6)
                 tryagain = false;
             else
                 System.out.println("Try again.");
@@ -141,7 +160,9 @@ public class HanumanCorporation {
         System.out.println("Press 1 to change file permissions.");
         System.out.println("Press 2 to add a user.");
         System.out.println("Press 3 to add a file.");
-        System.out.println("Press 4 to logout.");
+        System.out.println("Press 4 to send mail.");
+        System.out.println("Press 5 to display the access control matrix.");
+        System.out.println("Press 6 to logout.");
     }
 
     /**
@@ -223,6 +244,7 @@ public class HanumanCorporation {
             System.out.println("You do not have permission to send mail.");
             return true;
         }
+        EncryptedMessage em = new EncryptedMessage(GetMessageBody());
         return true;
     }
     
@@ -235,6 +257,14 @@ public class HanumanCorporation {
             System.out.println("inside HanumanCorporation:GetNewFileName()");
         Scanner kbd = new Scanner(System.in);
         System.out.println("Enter the file name you are adding: ");
+        return kbd.nextLine();
+    }
+
+    private static String GetMessageBody() {
+        if (DEBUG) 
+            System.out.println("inside HanumanCorporation:GetMessageBody()");
+        Scanner kbd = new Scanner(System.in);
+        System.out.println("Enter the message you are sending: (one line only)");
         return kbd.nextLine();
     }
     
