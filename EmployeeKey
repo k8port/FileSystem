@@ -1,0 +1,40 @@
+
+package hanumancorporation;
+
+/**
+ * Defines the file system record of employee and key to send encrypted messages.
+ * @author k8port
+ */
+public class EmployeeKey {
+    
+    // data fields
+    /** The userId of the employee. */
+    private String name;
+    /** The single char symmetric key. */
+    private String key;
+    
+    // constructor
+    public EmployeeKey(String userId) {
+        if (userId == null)
+            System.out.println("Error: no userId in record.");
+        name = userId;
+        key = "";
+    }
+    
+    // method
+    public void addSymKey(String key) {
+        if (key == null)
+            System.out.println("Error: no key data.");
+        this.key = key;
+    }
+    
+    public void changeName(String newName) {
+        if (newName ==  null)
+            System.out.println("Error: no name data.");
+        name = newName;
+    }
+    
+    public String getName() {
+        return name;
+    }
+}
