@@ -1,0 +1,52 @@
+
+package hanumancorporation;
+
+/**
+ * Class that defines a message encrypted with a 16 bit key in hexadecimal.
+ * @author k8port
+ */
+public class EncryptedMessage {
+    
+    // data fields
+    /** A string containing all the chars acceptable as the random key. */
+    private String CHAR_KEY = "`1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./~"
+            + "!@#$%^&*()_+QWERTYUIOP{}ASDFGHJKL:ZXCVBNM<>?";
+    /** A string representing a message. */
+    private String message;
+    /** A char to be a key of 16-bit value. */
+    private String key;
+    
+    //constructors
+    /**
+     * Constructor with a parameter containing the message body.
+     * Checks length for even number of characters, pads if length is odd, and
+     * then uses the key to encrypt.
+     * @param x 
+     */
+    public EncryptedMessage(String x) {
+        if (x == null)
+            System.out.println("Error: Message body is empty.");
+        message = x;
+        if (message.length() % 2 != 0) 
+            message = x + " "; // pad message with blank to make length even
+        key = assignRandomKey();
+        message = encryptMessage();
+    }
+    
+    // methods
+
+    private String assignRandomKey() {
+        int x = (int) (Math.random() * CHAR_KEY.length());
+        return Character.toString(CHAR_KEY.charAt(x));
+    }    
+
+    private String encryptMessage() {
+        // n is length of message in bytes since each char is 2 bytes
+        int n = message.length() * 2; 
+        int result = Integer.valueOf(message);
+        for (int i = 0; i < n; i++) {
+            result ^= Integer.valueOf(key); 
+        }
+        return Integer.toHexString(result);
+    }    
+}
