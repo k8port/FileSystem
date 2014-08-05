@@ -23,7 +23,7 @@ public class Corporation {
     /** A list of corporate files. */
     private final List<String> files;
     /** A list of corporate employees. */
-    private final List<String> employees;
+    private final List<EmployeeKey> employees;
     /** An access control matrix. */
     private Table acm;
     
@@ -71,19 +71,19 @@ public class Corporation {
     private void establishBaseEmployees() {
         if (DEBUG) 
             System.out.println("inside Corporation:establishBaseEmployees()");
-        employees.add("hanumanadmin1");
-        employees.add("hanumanadmin2");
-        employees.add("hanumanceo");
-        employees.add("hanumanvp");
-        employees.add("hanumancfo");
-        employees.add("employee1");
-        employees.add("employee2");
-        employees.add("employee3");
-        employees.add("employee4");
-        employees.add("employee5");
-        employees.add("employee6");
-        employees.add("techguy1");
-        employees.add("techgal1");
+        employees.add(new EmployeeKey("hanumanadmin1"));
+        employees.add(new EmployeeKey("hanumanadmin2"));
+        employees.add(new EmployeeKey("hanumanceo"));
+        employees.add(new EmployeeKey("hanumanvp"));
+        employees.add(new EmployeeKey("hanumancfo"));
+        employees.add(new EmployeeKey("employee1"));
+        employees.add(new EmployeeKey("employee2"));
+        employees.add(new EmployeeKey("employee3"));
+        employees.add(new EmployeeKey("employee4"));
+        employees.add(new EmployeeKey("employee5"));
+        employees.add(new EmployeeKey("employee6"));
+        employees.add(new EmployeeKey("techguy1"));
+        employees.add(new EmployeeKey("techgal1"));
     }
     
     /**
@@ -107,7 +107,7 @@ public class Corporation {
            
         }
         for (int indexF = 1; indexF < x.length; indexF++)
-            x[indexF][0] = employees.get(indexF-1);
+            x[indexF][0] = employees.get(indexF-1).getName();
         if (DEBUG) {
             System.out.println("length of rows: " + x.length);
             System.out.println("length of columns " + x[0].length);
@@ -154,7 +154,7 @@ public class Corporation {
      * Access a list of company employees.
      * @return a list iterator over company employees
      */
-    public ListIterator<String> getCompanyEmployees() {
+    public ListIterator<EmployeeKey> getCompanyEmployees() {
         if (DEBUG) 
             System.out.println("inside Corporation:getCompanyEmployees()");
         return employees.listIterator();
@@ -248,15 +248,15 @@ public class Corporation {
     public boolean addEmployee(String user) {
         if (DEBUG) 
             System.out.println("inside Corporation:addEmployee(param)");
-        ListIterator<String> liu = employees.listIterator();
+        ListIterator<EmployeeKey> liu = employees.listIterator();
         while (liu.hasNext()) {
             if (DEBUG)
                 System.out.println("inside checking for employee match");
-            String current = liu.next();
-            if (current.equals(user))
+            EmployeeKey current = liu.next();
+            if (current.getName().equals(user))
                 return false;
         }
-        employees.add(user);
+        employees.add(new EmployeeKey(user));
         // an array starting with userId and a field for each file
         String[] row = new String[getNumberFiles() + 1]; // add 1 for userId 
         row[0] = user;
@@ -278,19 +278,19 @@ public class Corporation {
             throws BadDataException {
         if (DEBUG) 
             System.out.println("inside Corporation:changeEmployee(param, param)");
-        ListIterator<String> liu = employees.listIterator();
+        ListIterator<EmployeeKey> liu = employees.listIterator();
         while (liu.hasNext()) {
-            String current = liu.next();
-            if (current.equals(oldUser)) {
-                current = newUser;
+            EmployeeKey current = liu.next();
+            if (current.getName().equals(oldUser)) {
+                current.changeName(newUser);
                 // assumes that if user is in list of employees,
                //  they are also in table
                for (int i = 0; i< acm.getNumberColumns(); i++)
-                   acm.changeTableData(liu.previousIndex(), i, current);
+                   acm.changeTableData(liu.previousIndex(), i, current.getName());
                 return true;
             }
         }
-        employees.add(newUser);
+        employees.add(new EmployeeKey(newUser));
         
         return false;
     }
@@ -304,14 +304,14 @@ public class Corporation {
     public String removeUser(String theUser) {
         if (DEBUG) 
             System.out.println("inside Corporation:removeUser(param)");
-        ListIterator<String> liu = employees.listIterator();
+        ListIterator<EmployeeKey> liu = employees.listIterator();
         while (liu.hasNext()) {
-            String current = liu.next();
-            if (current.equals(theUser)) {
+            EmployeeKey current = liu.next();
+            if (current.getName().equals(theUser)) {
                 employees.remove(current);
                 // if user is part of list, they also be in table
-                acm.deleteRow(acm.getRowIndex(current));
-                return current;
+                acm.deleteRow(acm.getRowIndex(current.getName()));
+                return current.getName();
             }
         }
         return null;
